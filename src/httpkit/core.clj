@@ -11,7 +11,7 @@
 (defn show-landing-page [req]
   {:status  200
    :headers {"Content-Type" "application/json"}
-   :body    (json/generate-string {:foo "bar" :baz 5})})
+   :body    (json/generate-string {:foo "barrr" :baz 5})})
 
 (defn wrap-logging [handler]
   (fn [req]
@@ -28,7 +28,7 @@
 
 (defn in-dev?
   [args]
-  true)
+  (some #(= "dev" %) args))
 
 (defn -main
   "Starts the app"
@@ -36,6 +36,7 @@
   ;; work around dangerous default behaviour in Clojure
   ;;(alter-var-root #'*read-eval* (constantly false))
   (info "starting up ...")
+  (info "args: " args)
   (let [handler (if (in-dev? args)
                   (reload/wrap-reload (site #'all-routes)) ;; only reload when dev
                   (site all-routes))]
