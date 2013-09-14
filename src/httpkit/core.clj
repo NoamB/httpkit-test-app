@@ -2,6 +2,9 @@
   (:require [org.httpkit.server :refer [run-server]])
   (:require [clojure.tools.logging :refer [info error]])
   (:require [ring.middleware.reload :as reload]
+            [ring.middleware.session :as session]
+            [ring.util.response :refer [response redirect]]
+            [compojure.response :refer [render]]
             [compojure.core :refer [defroutes GET POST]]
             [compojure.route :as route :refer [resources files not-found]]
             [compojure.handler :refer [site]] ; form, query params decode; cookie; session, etc
@@ -10,37 +13,54 @@
 
 (defn- authenticate
   "Looks in user storage for a user record with the supplied credentials. If found returns true, else false."
-  [username password]
-  (and (= username "noam")
-       (= password "1234"))
+  [credentials]
+  (and (= (first credentials) "noam")
+       (= (second credentials) "1234"))
   )
 
-(defn show-landing-page [req]
-  {:status  200
-   :headers {"Content-Type" "application/json"}
-   :body    (json/generate-string {:foo "bar" :baz 5})})
+(defn- not-authenticated
+  []
+  {:status 403
+   :headers {}
+   :body "wrong credentials!" })
 
-(defn create-login [{params :form-params}]
+(defn- logged-in?
+  "Takes a session map and inspects it for the required keys to be logged in.
+   Returns true if logged in, else false."
+  [session]
+  (not (nil? (session :user-id))))
+
+(defn main-page [{session :session :as req}]
+  (if (logged-in? session)
+    (render "Welcome! <a href=\"/logout\">Logout</a>" req)
+    (redirect "/login.html"))
+  )
+
+(defn create-login [{session :session params :form-params}]
   (info params)
-  (if (authenticate (params "username") (params "password"))
-    {:status  200
-     :headers {"Content-Type" "text/html"}
-     :body    (str "you posted login! params: " params) }
-    {:status 403
-     :headers {}
-     :body "wrong credentials!" }))
+  (if (authenticate [(params "username") (params "password")]) ;; TODO: sanitize user data?
+    (let [session (assoc session :user-id 1)]
+      (-> (redirect "/")
+          (assoc :session session)))
+    (not-authenticated)))
+
+(defn logout
+  [req]
+  (-> (redirect "/")
+      (assoc :session nil)))
 
 (defn wrap-logging [handler]
   (fn [req]
-    (info "***REQUEST STARTED***" \newline req)
+    (info "=== REQUEST STARTED ===>" \newline req)
     (let [resp (handler req)]
       (info "Sent Response: " \newline resp)
-      (info "---REQUEST ENDED---" \newline)
+      (info "<=== REQUEST ENDED ===" \newline)
       resp)))
-1
+
 (defroutes all-routes
-  (GET "/" [] show-landing-page)
+  (GET "/" [] main-page)
   (POST "/login" [] create-login)
+  (GET "/logout" [] logout)
   (route/files "/") ;; static file url prefix /, in `public` folder
   (route/not-found "<p>Page not found.</p>")) ;; all other, return 404
 
@@ -55,10 +75,11 @@
   ;;(alter-var-root #'*read-eval* (constantly false))
   (info "starting up ...")
   (info "args: " args)
-  (let [dev-mode (in-dev? args) handler (if dev-mode
-                                          (reload/wrap-reload (site #'all-routes)) ;; only reload when dev
-                                          (site all-routes))]
+  (let [dev-mode (in-dev? args)
+        handler (if dev-mode
+                  (reload/wrap-reload (site #'all-routes)) ;; only reload when dev
+                  (site all-routes))]
     (if dev-mode
       (info "--- DEV MODE ---")
-      (info "PROD MODE"))
-    (run-server (-> handler wrap-logging) {:port 8080})))
+      (info "%%% PROD MODE %%%"))
+    (run-server (-> handler session/wrap-session wrap-logging) {:port 8080})))
