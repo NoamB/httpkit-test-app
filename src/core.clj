@@ -1,4 +1,5 @@
-(ns httpkit.core
+(ns core
+  {:author "Noam Ben Ari"}
   (:require [org.httpkit.server :refer [run-server]])
   (:require [clojure.tools.logging :refer [info error]])
   (:require [ring.middleware.reload :as reload]
@@ -8,27 +9,16 @@
             [compojure.core :refer [defroutes GET POST]]
             [compojure.route :as route :refer [resources files not-found]]
             [compojure.handler :refer [site]] ; form, query params decode; cookie; session, etc
-            [cheshire.core :as json :refer [generate-string]])
+            [cheshire.core :as json :refer [generate-string]]
+            [noam.auth :refer :all]
+            [noam.user :refer :all])
   (:gen-class))
-
-(defn- authenticate
-  "Looks in user storage for a user record with the supplied credentials. If found returns true, else false."
-  [credentials]
-  (and (= (first credentials) "noam")
-       (= (second credentials) "1234"))
-  )
 
 (defn- not-authenticated
   []
   {:status 403
    :headers {}
    :body "wrong credentials!" })
-
-(defn- logged-in?
-  "Takes a session map and inspects it for the required keys to be logged in.
-   Returns true if logged in, else false."
-  [session]
-  (not (nil? (session :user-id))))
 
 (defn main-page [{session :session :as req}]
   (if (logged-in? session)
@@ -38,8 +28,8 @@
 
 (defn create-login [{session :session params :form-params}]
   (info params)
-  (if (authenticate [(params "username") (params "password")]) ;; TODO: sanitize user data?
-    (let [session (assoc session :user-id 1)]
+  (if-let [user (authenticate [(params "username") (params "password")])] ;; TODO: sanitize user data?
+    (let [session (assoc session :user-id (.id user))]
       (-> (redirect "/")
           (assoc :session session)))
     (not-authenticated)))
