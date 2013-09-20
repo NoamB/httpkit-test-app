@@ -1,5 +1,5 @@
 (ns noam.user
-  (:require [clj-bcrypt-wrapper.core :refer :all]
+  (:require [clj-bcrypt-wrapper.core :refer [encrypt gensalt]]
             [clojure.tools.logging :refer [info error]]))
 
 (defrecord User [id username encrypted-password])
@@ -8,7 +8,6 @@
 
 ;; go to storage
 (defn- getUser [username encrypted-password]
-  (info encrypted-password)
   (if (and (= username "noam")
            (= encrypted-password (encrypt salt "1234")))
     (->User 1 username encrypted-password)

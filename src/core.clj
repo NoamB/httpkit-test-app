@@ -4,6 +4,7 @@
   (:require [clojure.tools.logging :refer [info error]])
   (:require [ring.middleware.reload :as reload]
             [ring.middleware.session :as session]
+            [ring.middleware.lint :refer [wrap-lint]]
             [ring.util.response :refer [response redirect]]
             [compojure.response :refer [render]]
             [compojure.core :refer [defroutes GET POST]]
@@ -41,7 +42,7 @@
 
 (defn wrap-logging [handler]
   (fn [req]
-    (info "=== REQUEST STARTED ===>" \newline req)
+    (info "=== REQUEST STARTED ===>" (req :uri) \newline req)
     (let [resp (handler req)]
       (info "Sent Response: " \newline resp)
       (info "<=== REQUEST ENDED ===" \newline)
@@ -67,9 +68,11 @@
   (info "args: " args)
   (let [dev-mode (in-dev? args)
         handler (if dev-mode
-                  (reload/wrap-reload (site #'all-routes)) ;; only reload when dev
+                  (->  (site all-routes)
+                       reload/wrap-reload
+                       wrap-lint) ;; only reload when dev
                   (site all-routes))]
     (if dev-mode
       (info "--- DEV MODE ---")
       (info "%%% PROD MODE %%%"))
-    (run-server (-> handler session/wrap-session wrap-logging) {:port 8080})))
+    (run-server (-> handler wrap-logging) {:port 8080})))
