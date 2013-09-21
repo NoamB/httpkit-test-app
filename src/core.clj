@@ -15,6 +15,21 @@
             [noam.user :refer :all])
   (:gen-class))
 
+
+(declare -main)
+
+(def stop-server-fn (atom #())) ; declared as no-op Fn to prevent NPE.
+
+(defn stop-server
+  []
+  (@stop-server-fn))
+
+(defn reload
+  []
+  (stop-server)
+  (clojure.tools.namespace.repl/refresh)
+  (-main))
+
 (defmacro bench
   "Returns a vector containing the result of form and the time it took to compute in msec."
   [level form]
@@ -38,8 +53,9 @@
 
 (defn create-login [{session :session params :form-params}]
   (info params)
-  (if-let [user (authenticate [(params "username") (params "password")])] ;; TODO: sanitize user data?
-    (let [session (assoc session :user-id (.id user))]
+  (if-let [user (authenticate [(params "username")
+                               (params "password")])] ;; TODO: sanitize user data?
+    (let [session (login-session session (.id user))]
       (-> (redirect "/")
           (assoc :session session)))
     (not-authenticated)))
@@ -47,7 +63,7 @@
 (defn logout
   [req]
   (-> (redirect "/")
-      (assoc :session nil)))
+      (reset-session)))
 
 (defn wrap-logging [handler]
   (fn [req]
@@ -87,4 +103,6 @@
     (if dev-mode
       (info "--- DEV MODE ---")
       (info "%%% PROD MODE %%%"))
-    (run-server (-> handler wrap-logging) {:port 8080})))
+    (let [stop-fn (run-server (-> handler wrap-logging) {:port 8080})]
+      (reset! stop-server-fn stop-fn))
+    ))
