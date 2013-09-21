@@ -13,7 +13,7 @@
     (->User 1 username encrypted-password)
     nil))
 
-(defn authenticate
-  "Looks in user storage for a user record with the supplied credentials. If found returns the User, else nil."
-  [credentials]
-  (getUser (first credentials) (encrypt salt (second credentials))))
+(defn authenticate-from-storage
+  "Looks in user storage for a user record with the supplied identifiers. If found returns the User, else nil."
+  [identifiers]
+  (getUser (first identifiers) (encrypt salt (second identifiers))))

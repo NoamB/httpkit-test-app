@@ -1,7 +1,7 @@
 (ns core
   {:author "Noam Ben Ari"}
   (:require [org.httpkit.server :refer [run-server]])
-  (:require [clojure.tools.logging :refer [info error]])
+  (:require [clojure.tools.logging :refer [debug info error enabled?]])
   (:require [ring.middleware.reload :as reload]
             [ring.middleware.session :as session]
             [ring.middleware.lint :refer [wrap-lint]]
@@ -14,6 +14,15 @@
             [noam.auth :refer :all]
             [noam.user :refer :all])
   (:gen-class))
+
+(defmacro bench
+  "Returns a vector containing the result of form and the time it took to compute in msec."
+  [level form]
+  `(let [start# (java.lang.System/nanoTime)
+         result# ~form
+         total-time# (when (enabled? ~level)
+                       (/ (double (- (java.lang.System/nanoTime) start#)) 1000000.0))]
+     [result# total-time#]))
 
 (defn- not-authenticated
   []
@@ -42,10 +51,13 @@
 
 (defn wrap-logging [handler]
   (fn [req]
-    (info "=== REQUEST STARTED ===>" (req :uri) \newline req)
-    (let [resp (handler req)]
-      (info "Sent Response: " \newline resp)
-      (info "<=== REQUEST ENDED ===" \newline)
+    (info "=== REQUEST STARTED ===>" (req :uri) \newline)
+    (let [result (bench :debug (handler req))
+          resp (first result)
+          request-time (second result)]
+      (info "Params:" (req :params))
+      (info "Sent Response: " resp)
+      (info (str  "<=== REQUEST ENDED === (" request-time " msec)") \newline)
       resp)))
 
 (defroutes all-routes
@@ -69,8 +81,8 @@
   (let [dev-mode (in-dev? args)
         handler (if dev-mode
                   (->  (site all-routes)
-                       reload/wrap-reload
-                       wrap-lint) ;; only reload when dev
+                       wrap-lint
+                       reload/wrap-reload) ;; only reload when dev
                   (site all-routes))]
     (if dev-mode
       (info "--- DEV MODE ---")
