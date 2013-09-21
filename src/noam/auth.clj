@@ -1,5 +1,6 @@
 (ns noam.auth
-  {:author "Noam Ben Ari"})
+  {:author "Noam Ben Ari"}
+  (:require [noam.user :refer [authenticate-from-storage]]))
 
 (defn logged-in?
   "Takes a session map and inspects it for the required keys to be logged in.
@@ -7,5 +8,6 @@
   [session]
   (not (nil? (session :user-id))))
 
-;; use defrecord for User.
-;; maybe implement an interface
+(defn authenticate ;; should loop over all authenticate options
+  [identifiers]
+  (authenticate-from-storage identifiers))
