@@ -1,5 +1,5 @@
 (ns noam.controller
-  (:require [clojure.tools.logging :refer [debug info error enabled?]]
+  (:require [clojure.tools.logging :refer [debug info error]]
             [ring.util.response :refer [response redirect]]
             [compojure.response :refer [render]]
             [compojure.core :refer [defroutes GET POST]]
@@ -21,8 +21,7 @@
     (redirect "/login.html"))
   )
 
-(defn login [{session :session params :form-params}]
-  (info params)
+(defn login [{session :session params :form-params :as req}]
   (if-let [user (authenticate [(params "username")
                                (params "password")])] ;; TODO: sanitize user data?
     (let [session (login-session session (.id user))]

@@ -1,6 +1,6 @@
 (ns core
   {:author "Noam Ben Ari"}
-  (:require [clojure.tools.logging :refer [debug info error enabled?]])
+  (:require [clojure.tools.logging :refer [debug info error]])
   (:require [ring.middleware.reload :as reload]
             [ring.middleware.session :as session]
             [ring.middleware.lint :refer [wrap-lint]]
@@ -18,12 +18,13 @@
   []
   (server/stop!)
   (refresh)
+  (require '[clojure.repl :refer [doc]])  ; get 'doc' in repl
   (prn "starting server...")
-  (-main '("dev")))
+  (-main "dev"))
 
 (defn wrap-outer-logging [handler]
   (fn [req]
-    (info "=== REQUEST STARTED ===>" (req :uri) \newline)
+    (info "=== REQUEST STARTED ===>" (req :uri))
     (let [result (bench :debug (handler req))
           resp (first result)
           request-time (second result)]
