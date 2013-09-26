@@ -1,3 +1,4 @@
+;;;; small http-kit wrapper exposing the server as a 'component'.
 (ns noam.server
   (:require [org.httpkit.server :refer [run-server]]))
 

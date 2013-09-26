@@ -1,12 +1,15 @@
+;;;; This module includes the main entry point of the app (-main)
+;;;; as well as methods for building up the main app handler from
+;;;; different middleware pieces in order.
 (ns core
   {:author "Noam Ben Ari"}
-  (:require [clojure.tools.logging :refer [debug info error]])
-  (:require [ring.middleware.reload :as reload]
-            [ring.middleware.session :as session]
-            [ring.middleware.lint :refer [wrap-lint]]
+  (:require [clojure.tools.logging :refer [debug info error]]
             [clojure.tools.namespace.repl :refer [refresh]]
-            [compojure.handler :refer [site]] ; form, query params decode; cookie; session, etc
 
+            [ring.middleware.session :as session]
+            [ring.middleware.json :refer [wrap-json-response]]
+
+            [compojure.handler :refer [site]] ; form, query params decode; cookie; session, etc
             [noam.util.bench :refer [bench]]
             [noam.server :as server]
             [noam.controller :refer [all-routes]])
@@ -29,7 +32,9 @@
           resp (first result)
           request-time (second result)]
       (info "Sent Response: " resp)
-      (info (str  "<=== REQUEST ENDED === (" request-time " msec)") \newline)
+      (info (str  "<=== REQUEST ENDED === "
+                  (when request-time
+                    (str "(" request-time " msec)")) \newline))
       resp)))
 
 (defn wrap-inner-logging [handler]
@@ -46,13 +51,12 @@
   []
   (->
    (site (-> all-routes
-             wrap-inner-logging))))
+             wrap-inner-logging
+             wrap-json-response))))
 
 (defn- gen-dev-handler
   []
-  (-> (gen-prod-handler)
-      wrap-lint
-      reload/wrap-reload))
+  (-> (gen-prod-handler)))
 
 (defn- get-handler
   [dev-mode?]
