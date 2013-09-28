@@ -11,7 +11,7 @@
            total-time# (msec-since start#)]
        [result# total-time#])))
 
-(definline msec-since ()
+(definline msec-since
   "Returns a double representing time in msec since start-time. start-time should be a result of java.lang.System/nanoTime or compatible."
   [start-time]
   `(/
