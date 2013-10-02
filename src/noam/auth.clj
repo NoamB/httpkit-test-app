@@ -1,7 +1,6 @@
 (ns noam.auth
   {:author "Noam Ben Ari"}
-  (:require [noam.user
-             :refer [authenticate-from-storage]]))
+  (:require [noam.user :refer [authenticate-from-storage]]))
 
 (defn logged-in?
   "Takes a session map and inspects it for the required keys to be logged in.

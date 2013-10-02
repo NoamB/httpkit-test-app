@@ -1,7 +1,9 @@
 (ns noam.util.db
   (:require [clojure.java.jdbc :as jdbc]
             [clojure.java.jdbc.sql :as sql]
-            [clojure.java.jdbc.ddl :as ddl])
+            [clojure.java.jdbc.ddl :as ddl]
+            [clojure.string :as s]
+            [noam.user :refer [IUserStorage update-attributes]])
   (:import javax.sql.DataSource
            com.mchange.v2.c3p0.ComboPooledDataSource))
 
@@ -12,41 +14,86 @@
    :user "annonymous"
    :password ""})
 
-(defn pool
-  [spec]
-  (let [cpds (doto (ComboPooledDataSource.)
-               (.setDriverClass (:classname spec))
-               (.setJdbcUrl (str "jdbc:" (:subprotocol spec) ":" (:subname spec)))
-               (.setUser (:user spec))
-               (.setPassword (:password spec))
-               ;; expire excess connections after 30 minutes of inactivity:
-               (.setMaxIdleTimeExcessConnections (* 30 60))
-               ;; expire connections after 3 hours of inactivity:
-               (.setMaxIdleTime (* 3 60 60)))]
-    {:datasource cpds}))
+(defn connection-pool
+  "Create a connection pool for the given database spec."
+  [{:keys [subprotocol subname classname user password
+           excess-timeout idle-timeout minimum-pool-size maximum-pool-size
+           test-connection-query
+           idle-connection-test-period
+           test-connection-on-checkin
+           test-connection-on-checkout]
+    :or {excess-timeout (* 30 60)
+         idle-timeout (* 3 60 60)
+         minimum-pool-size 3
+         maximum-pool-size 15
+         test-connection-query nil
+         idle-connection-test-period 0
+         test-connection-on-checkin false
+         test-connection-on-checkout false}
+    :as spec}]
+  {:datasource (doto (ComboPooledDataSource.)
+                 (.setDriverClass classname)
+                 (.setJdbcUrl (str "jdbc:" subprotocol ":" subname))
+                 (.setUser user)
+                 (.setPassword password)
+                 (.setMaxIdleTimeExcessConnections excess-timeout)
+                 (.setMaxIdleTime idle-timeout)
+                 (.setMinPoolSize minimum-pool-size)
+                 (.setMaxPoolSize maximum-pool-size)
+                 (.setIdleConnectionTestPeriod idle-connection-test-period)
+                 (.setTestConnectionOnCheckin test-connection-on-checkin)
+                 (.setTestConnectionOnCheckout test-connection-on-checkout)
+                 (.setPreferredTestQuery test-connection-query))})
 
-(def pooled-db (delay (pool db-spec)))
+(def pooled-db (delay (connection-pool db-spec)))
 
 (defn db-connection [] @pooled-db)
 
-(defn create-blogs-sql
-  "Create a table to store blog entries"
+(defn create-users-sql
+  "Retruns SQL to create a Users table, currently without sql engine and charset and keys and foreign keys."
   []
   (ddl/create-table
-   :blogs
+   :Users
    [:id :integer "PRIMARY KEY" "AUTO_INCREMENT"]
-   [:title "varchar(255)"]
-   [:body :text]))
+   [:username "varchar(255)"]
+   [:encrypt_password "varchar(255)"]))
 
-(defn get-blog-entry
+(defn get-user-by-id
   [id]
   (jdbc/query (db-connection)
-              ["SELECT title, body FROM blogs WHERE id = ?" id]))
+              ["SELECT * FROM Users WHERE id = ?" id]))
 
 (defn exec
-  [sql]
-  (jdbc/execute! (db-connection) [sql]))
+  [sql-params]
+  (jdbc/execute! (db-connection) sql-params))
 
 (defn select
-  [sql]
-  (jdbc/query (db-connection) [sql]))
+  [sql-params]
+  (jdbc/query (db-connection) sql-params))
+
+(defn attrs-str
+  "Serializes a map of attributes into an SQL-compatible query part."
+  [m]
+  (let [ks (map #(str (name %) " = ?") (keys m))
+        vs (vals m)]
+    [(s/join "," ks) vs]))
+
+(defn build-query-from-attrs
+  "Builds a query starting with query-prefix, a string generated from serializing attrs-map and query-suffix.
+   Returns a vector with the query as prepared statement and a vector of parameter values."
+  [query-prefix attrs-map query-suffix suffix-map]
+  (let [as1 (attrs-str attrs-map)
+        as2 (attrs-str suffix-map)
+        query (str query-prefix (first as1) query-suffix (first as2))]
+  (flatten
+   [query (second as1) (second as2)])))
+
+(deftype MySQLUserStorage
+    []
+    IUserStorage
+  (update-attributes
+    [this attrs-map id]
+    (exec (build-query-from-attrs "UPDATE Users SET " attrs-map " WHERE " {:id id})))
+  (find-by-identifiers
+    [this identifiers]
+    (select ["SELECT * FROM Users WHERE ", 1])))
