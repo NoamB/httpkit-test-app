@@ -1,7 +1,7 @@
 (ns noam.user)
 
 (defprotocol IUserStorage
-  (update-attributes [this attrs-map id])
+  (update-attributes [this attrs-map])
   (find-by-identifiers [this identifiers]))
 
 (defrecord User [id username encrypted-password])

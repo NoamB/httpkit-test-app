@@ -81,19 +81,20 @@
 (defn build-query-from-attrs
   "Builds a query starting with query-prefix, a string generated from serializing attrs-map and query-suffix.
    Returns a vector with the query as prepared statement and a vector of parameter values."
-  [query-prefix attrs-map query-suffix suffix-map]
-  (let [as1 (attrs-str attrs-map)
-        as2 (attrs-str suffix-map)
-        query (str query-prefix (first as1) query-suffix (first as2))]
+  [query-prefix attrs-map query-suffix]
+  (let [id (:id attrs-map)
+        m (dissoc attrs-map :id)
+        as (attrs-str m)
+        query (str query-prefix (first as) query-suffix)]
   (flatten
-   [query (second as1) (second as2)])))
+   [query (second as) id])))
 
 (deftype MySQLUserStorage
     []
     IUserStorage
   (update-attributes
-    [this attrs-map id]
-    (exec (build-query-from-attrs "UPDATE Users SET " attrs-map " WHERE " {:id id})))
+    [this attrs-map]
+    (exec (build-query-from-attrs "UPDATE Users SET " attrs-map " WHERE id = ?" )))
   (find-by-identifiers
     [this identifiers]
     (select ["SELECT * FROM Users WHERE ", 1])))
