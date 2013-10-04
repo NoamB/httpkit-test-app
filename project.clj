@@ -19,4 +19,4 @@
                  [c3p0/c3p0 "0.9.1.2"]
                  [org.clojure/java.jdbc "0.3.0-alpha5"]
                  [mysql/mysql-connector-java "5.1.22"]]
-  :main core)
+  :main httpkit.core)

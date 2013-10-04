@@ -1,19 +1,19 @@
 (ns noam.user
-  (:require [clj-bcrypt-wrapper.core :refer [encrypt gensalt check-password]]
+  (:require [clj-bcrypt-wrapper.core :refer [encrypt gensalt]]
             [clojure.tools.logging :refer [info error]]))
 
 (defrecord User [id username encrypted-password])
 
-(defn salt [] (gensalt 10))
+(definline salt [] (gensalt 10))
 
 ;; go to storage
-(defn- getUser [username password]
+(defn- getUser [username encrypted-password]
   (if (and (= username "noam")
-           (check-password "1234" (encrypt (salt) "1234")))
-    (->User 1 username password)
+           (= encrypted-password (encrypt (salt) "1234")))
+    (->User 1 username encrypted-password)
     nil))
 
 (defn authenticate-from-storage
   "Looks in user storage for a user record with the supplied identifiers. If found returns the User, else nil."
   [identifiers]
-  (getUser (first identifiers) (second identifiers)))
+  (getUser (first identifiers) (encrypt (salt) (second identifiers))))

@@ -1,7 +1,7 @@
 ;;;; This module includes the main entry point of the app (-main)
 ;;;; as well as methods for building up the main app handler from
 ;;;; different middleware pieces in order.
-(ns core
+(ns httpkit.core
   {:author "Noam Ben Ari"}
   (:require [clojure.tools.logging :refer [debug info error]]
             [clojure.tools.namespace.repl :refer [refresh]]
@@ -71,6 +71,7 @@
                                         ; (alter-var-root #'*read-eval* (constantly false))
   (info "starting up ...")
   (info "args: " args)
+  (set! *warn-on-reflection* true)
   (let [dev-mode (in-dev? args)
         handler (get-handler dev-mode)]
     (if dev-mode
