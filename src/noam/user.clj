@@ -4,6 +4,11 @@
 
 (defrecord User [id username encrypted-password])
 
+(defprotocol IUserStorage
+  "IUserStorage docstring"
+  (update-attributes [this attrs-map] "docstring")
+  (find-by-identifiers [this identifiers] "docstring"))
+
 (defn salt [] (gensalt 10))
 
 ;; go to storage

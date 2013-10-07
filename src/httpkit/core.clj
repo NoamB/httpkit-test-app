@@ -4,7 +4,6 @@
 (ns httpkit.core
   {:author "Noam Ben Ari"}
   (:require [clojure.tools.logging :refer [debug info error]]
-            [clojure.tools.namespace.repl :refer [refresh]]
 
             [ring.middleware.session :as session]
             [ring.middleware.json :refer [wrap-json-response]]
@@ -15,15 +14,17 @@
             [noam.controller :refer [all-routes]])
   (:gen-class))
 
-(declare -main)
+(declare wrap-outer-logging)
+(declare get-handler)
 
-(defn reload
-  []
-  (server/stop!)
-  (refresh)
-  (require '[clojure.repl :refer [doc]])  ; get 'doc' in repl
-  (prn "starting server...")
-  (-main "dev"))
+(defn system []
+  {:handler (-> (get-handler true) wrap-outer-logging)})
+
+(defn start [sys]
+  (server/start! (:handler sys)))
+
+(defn stop [sys]
+  (server/stop!))
 
 (defn wrap-outer-logging [handler]
   (fn [req]

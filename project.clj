@@ -4,7 +4,6 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/tools.namespace "0.2.4"]
                  [ring/ring-core "1.2.0"]
                  [ring/ring-json "0.2.0"]
                  [http-kit "2.1.10"]
@@ -19,4 +18,7 @@
                  [c3p0/c3p0 "0.9.1.2"]
                  [org.clojure/java.jdbc "0.3.0-alpha5"]
                  [mysql/mysql-connector-java "5.1.22"]]
+  :profiles {:dev {:source-paths ["dev"]
+                   :dependencies [[org.clojure/tools.namespace "0.2.4"]
+                                  [org.clojure/java.classpath "0.2.0"]]}}
   :main httpkit.core)
