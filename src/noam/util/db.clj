@@ -2,8 +2,7 @@
   (:require [clojure.java.jdbc :as jdbc]
             [clojure.java.jdbc.sql :as sql]
             [clojure.java.jdbc.ddl :as ddl]
-            [clojure.string :as s]
-            [noam.user :refer [IUserStorage update-attributes]])
+            [clojure.string :as s])
   (:import javax.sql.DataSource
            com.mchange.v2.c3p0.ComboPooledDataSource))
 
@@ -88,14 +87,3 @@
         query (str query-prefix (first as) query-suffix)]
   (flatten
    [query (second as) id])))
-
-(deftype MySQLUserStorage
-    []
-    IUserStorage
-  (update-attributes
-    [this attrs-map]
-    (exec (build-query-from-attrs "UPDATE Users SET " attrs-map " WHERE id = ?" )))
-  (find-by-identifiers
-    ^User
-    [this identifiers]
-    (select ["SELECT * FROM Users WHERE id = ?", 1])))
