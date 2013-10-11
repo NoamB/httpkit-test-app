@@ -22,13 +22,12 @@
 (declare get-handler)
 
 (defn system []
-  (delay
-    {:handler      (-> (get-handler true) wrap-outer-logging)
-     :user-storage (MySQLUserStorage.)}))
+  {:handler      (-> (get-handler true) wrap-outer-logging)
+   :user-storage (MySQLUserStorage.)})
 
 (defn start [sys]
-  (server/start! (:handler @sys))
-  @sys)
+  (server/start! (:handler sys))
+  sys)
 
 (defn stop [sys]
   (server/stop!))
