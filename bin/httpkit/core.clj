@@ -12,13 +12,15 @@
             [noam.util.bench :refer [bench]]
             [noam.server :as server]
             [noam.controller :refer [all-routes]])
+  (:import noam.user.MySQLUserStorage)
   (:gen-class))
 
 (declare wrap-outer-logging)
 (declare get-handler)
 
 (defn system []
-  {:handler (-> (get-handler true) wrap-outer-logging)})
+  {:handler      (-> (get-handler true) wrap-outer-logging)
+   :user-storage (MySQLUserStorage.)})
 
 (defn start [sys]
   (server/start! (:handler sys)))
@@ -33,9 +35,9 @@
           resp (first result)
           request-time (second result)]
       (info "Sent Response: " resp)
-      (info (str  "<=== REQUEST ENDED === "
-                  (when request-time
-                    (str "(" request-time " msec)")) \newline))
+      (info (str "<=== REQUEST ENDED === "
+                 (when request-time
+                   (str "(" request-time " msec)")) \newline))
       resp)))
 
 (defn wrap-inner-logging [handler]
@@ -51,9 +53,9 @@
 (defn- gen-prod-handler
   []
   (->
-   (site (-> all-routes
-             wrap-inner-logging
-             wrap-json-response))))
+    (site (-> all-routes
+              wrap-inner-logging
+              wrap-json-response))))
 
 (defn- gen-dev-handler
   []
@@ -68,8 +70,8 @@
 (defn -main
   "Starts the app"
   [& args]
-                                        ; work around dangerous default behaviour in Clojure
-                                        ; (alter-var-root #'*read-eval* (constantly false))
+  ; work around dangerous default behaviour in Clojure
+  ; (alter-var-root #'*read-eval* (constantly false))
   (info "starting up ...")
   (info "args: " args)
   (set! *warn-on-reflection* true)

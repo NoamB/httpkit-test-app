@@ -1,6 +1,8 @@
 ;;;; This module includes the main entry point of the app (-main)
 ;;;; as well as methods for building up the main app handler from
 ;;;; different middleware pieces in order.
+;;;; This ns will also take care of constructing the app with the
+;;;; right config.
 (ns httpkit.core
   {:author "Noam Ben Ari"}
   (:require [clojure.tools.logging :refer [debug info error]]
@@ -11,17 +13,22 @@
             [compojure.handler :refer [site]] ; form, query params decode; cookie; session, etc
             [noam.util.bench :refer [bench]]
             [noam.server :as server]
-            [noam.controller :refer [all-routes]])
+            [noam.controller :refer [all-routes]]
+            [noam.user :refer :all])
+  (:import noam.user.MySQLUserStorage)
   (:gen-class))
 
 (declare wrap-outer-logging)
 (declare get-handler)
 
 (defn system []
-  {:handler (-> (get-handler true) wrap-outer-logging)})
+  (delay
+    {:handler      (-> (get-handler true) wrap-outer-logging)
+     :user-storage (MySQLUserStorage.)}))
 
 (defn start [sys]
-  (server/start! (:handler sys)))
+  (server/start! (:handler @sys))
+  @sys)
 
 (defn stop [sys]
   (server/stop!))
@@ -33,9 +40,9 @@
           resp (first result)
           request-time (second result)]
       (info "Sent Response: " resp)
-      (info (str  "<=== REQUEST ENDED === "
-                  (when request-time
-                    (str "(" request-time " msec)")) \newline))
+      (info (str "<=== REQUEST ENDED === "
+                 (when request-time
+                   (str "(" request-time " msec)")) \newline))
       resp)))
 
 (defn wrap-inner-logging [handler]
@@ -51,9 +58,9 @@
 (defn- gen-prod-handler
   []
   (->
-   (site (-> all-routes
-             wrap-inner-logging
-             wrap-json-response))))
+    (site (-> all-routes
+              wrap-inner-logging
+              wrap-json-response))))
 
 (defn- gen-dev-handler
   []
@@ -68,8 +75,8 @@
 (defn -main
   "Starts the app"
   [& args]
-                                        ; work around dangerous default behaviour in Clojure
-                                        ; (alter-var-root #'*read-eval* (constantly false))
+  ; work around dangerous default behaviour in Clojure
+  ; (alter-var-root #'*read-eval* (constantly false))
   (info "starting up ...")
   (info "args: " args)
   (set! *warn-on-reflection* true)

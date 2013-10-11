@@ -2,17 +2,16 @@
   (:require [clojure.java.jdbc :as jdbc]
             [clojure.java.jdbc.sql :as sql]
             [clojure.java.jdbc.ddl :as ddl]
-            [clojure.string :as s]
-            [noam.user :refer [IUserStorage update-attributes]])
+            [clojure.string :as s])
   (:import javax.sql.DataSource
            com.mchange.v2.c3p0.ComboPooledDataSource))
 
 (def db-spec
-  {:classname "com.mysql.jdbc.Driver"
+  {:classname   "com.mysql.jdbc.Driver"
    :subprotocol "mysql"
-   :subname "//localhost:3306/test"
-   :user "annonymous"
-   :password ""})
+   :subname     "//localhost:3306/test"
+   :user        "annonymous"
+   :password    ""})
 
 (defn connection-pool
   "Create a connection pool for the given database spec."
@@ -22,15 +21,15 @@
            idle-connection-test-period
            test-connection-on-checkin
            test-connection-on-checkout]
-    :or {excess-timeout (* 30 60)
-         idle-timeout (* 3 60 60)
-         minimum-pool-size 3
-         maximum-pool-size 15
-         test-connection-query nil
-         idle-connection-test-period 0
-         test-connection-on-checkin false
-         test-connection-on-checkout false}
-    :as spec}]
+    :or   {excess-timeout              (* 30 60)
+           idle-timeout                (* 3 60 60)
+           minimum-pool-size           3
+           maximum-pool-size           15
+           test-connection-query       nil
+           idle-connection-test-period 0
+           test-connection-on-checkin  false
+           test-connection-on-checkout false}
+    :as   spec}]
   {:datasource (doto (ComboPooledDataSource.)
                  (.setDriverClass classname)
                  (.setJdbcUrl (str "jdbc:" subprotocol ":" subname))
@@ -53,10 +52,10 @@
   "Retruns SQL to create a Users table, currently without sql engine and charset and keys and foreign keys."
   []
   (ddl/create-table
-   :Users
-   [:id :integer "PRIMARY KEY" "AUTO_INCREMENT"]
-   [:username "varchar(255)"]
-   [:encrypt_password "varchar(255)"]))
+    :Users
+    [:id :integer "PRIMARY KEY" "AUTO_INCREMENT"]
+    [:username "varchar(255)"]
+    [:encrypt_password "varchar(255)"]))
 
 (defn get-user-by-id
   [id]
@@ -86,16 +85,5 @@
         m (dissoc attrs-map :id)
         as (attrs-str m)
         query (str query-prefix (first as) query-suffix)]
-  (flatten
-   [query (second as) id])))
-
-(deftype MySQLUserStorage
-    []
-    IUserStorage
-  (update-attributes
-    [this attrs-map]
-    (exec (build-query-from-attrs "UPDATE Users SET " attrs-map " WHERE id = ?" )))
-  (find-by-identifiers
-    ^User
-    [this identifiers]
-    (select ["SELECT * FROM Users WHERE id = ?", 1])))
+    (flatten
+      [query (second as) id])))

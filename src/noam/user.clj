@@ -11,16 +11,16 @@
   (find-by-identifiers [this identifiers] "docstring"))
 
 (deftype MySQLUserStorage
-    []
-    IUserStorage
+         []
+  IUserStorage
   (update-attributes
-    [this attrs-map]
-    (db/exec (db/build-query-from-attrs "UPDATE Users SET " attrs-map " WHERE id = ?" )))
+      [this attrs-map]
+    (db/exec (db/build-query-from-attrs "UPDATE Users SET " attrs-map " WHERE id = ?")))
   (find-by-identifiers
-    ^User
-    [this identifiers]
+      ^User
+      [this identifiers]
     (map->User (first
-                (db/select ["SELECT * FROM Users WHERE username = ?", "ars3"])))))
+                 (db/select ["SELECT * FROM Users WHERE username = ? AND id = ?", "ars3", 1])))))
 
 (defn salt [] (gensalt 10))
 
