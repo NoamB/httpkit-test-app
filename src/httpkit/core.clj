@@ -19,17 +19,17 @@
   (:gen-class))
 
 (declare wrap-outer-logging)
-(declare get-handler)
+(declare gen-handler)
 
 (defn system []
-  {:handler      (-> (get-handler true) wrap-outer-logging)
-   :user-storage (MySQLUserStorage.)})
+  (let [user-storage (MySQLUserStorage.)]
+    {:user-storage user-storage}))
 
-(defn start [sys]
-  (server/start! (:handler sys))
-  sys)
+(defn start [system]
+  (server/start! (gen-handler system))
+  system)
 
-(defn stop [sys]
+(defn stop [system]
   (server/stop!))
 
 (defn wrap-outer-logging [handler]
@@ -50,26 +50,13 @@
       (info "Params:" (req :params))
       (handler req))))
 
-(defn- in-dev?
-  [args]
-  (some #(= "dev" %) args))
-
-(defn- gen-prod-handler
-  []
-  (->
-    (site (-> all-routes
-              wrap-inner-logging
-              wrap-json-response))))
-
-(defn- gen-dev-handler
-  []
-  (-> (gen-prod-handler)))
-
-(defn- get-handler
-  [dev-mode?]
-  (if dev-mode?
-    (gen-dev-handler)
-    (gen-prod-handler)))
+(defn- gen-handler
+  [system]
+  (-> (site (-> system
+                all-routes
+                wrap-inner-logging
+                wrap-json-response))
+      (wrap-outer-logging)))
 
 (defn -main
   "Starts the app"
@@ -79,9 +66,6 @@
   (info "starting up ...")
   (info "args: " args)
   (set! *warn-on-reflection* true)
-  (let [dev-mode (in-dev? args)
-        handler (get-handler dev-mode)]
-    (if dev-mode
-      (info "---><><>< DEV  MODE ><><><---")
-      (info "%%%%%%%%% PROD MODE %%%%%%%%%"))
-    (server/start! (-> handler wrap-outer-logging))))
+
+  (let [handler (gen-handler (system))]
+    (server/start! handler)))

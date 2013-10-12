@@ -7,24 +7,27 @@
 
 (defprotocol IUserStorage
   "IUserStorage docstring"
-  (update-attributes [this attrs-map] "docstring")
+  (update-attributes! [this attrs-map] "docstring")
   (find-by-identifiers [this identifiers] "docstring"))
 
 (deftype MySQLUserStorage
          []
   IUserStorage
-  (update-attributes
+  (update-attributes!
       [this attrs-map]
     (db/exec (db/build-query-from-attrs "UPDATE Users SET " attrs-map " WHERE id = ?")))
   (find-by-identifiers
       ^User
       [this identifiers]
-    (map->User (first
-                 (db/select ["SELECT * FROM Users WHERE username = ? AND id = ?", "ars3", 1])))))
+    (let [ps (db/map-to-prepared-statement identifiers)
+          query (str "SELECT * FROM Users WHERE " (first ps))
+          params (second ps)
+          query-and-params (cons query params)]
+      (map->User (first (db/select query-and-params))))))
 
-(defn salt [] (gensalt 10))
+(defn- salt [] (gensalt 10))
 
 (defn authenticate-from-storage
   "Looks in user storage for a user record with the supplied identifiers. If found returns the User, else nil."
   [identifiers]
-  (.find-by-identifiers (->MySQLUserStorage) identifiers))
+  (.find-by-identifiers (->MySQLUserStorage) (select-keys identifiers [:username])))
