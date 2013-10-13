@@ -3,7 +3,8 @@
             [clojure.java.jdbc :as jdbc]
             [clojure.java.jdbc.sql :as sql]
             [clojure.java.jdbc.ddl :as ddl]
-            [clojure.string :as s])
+            [clojure.string :as s]
+            [noam.util.bench :refer [bench]])
   (:import javax.sql.DataSource
            com.mchange.v2.c3p0.ComboPooledDataSource))
 
@@ -65,8 +66,13 @@
 
 (defn select
   [sql-vec]
-  (info sql-vec)
-  (jdbc/query (db-connection) sql-vec))
+  (let [result (bench :info (jdbc/query (db-connection) sql-vec))
+        resp (first result)
+        request-time (second result)]
+    (info "[<<--]" sql-vec
+          (when request-time
+            (str "(" request-time " msec)")))
+    resp))
 
 (defn map-to-prepared-statement
   "Serializes a map of attributes into an SQL-compatible query part."

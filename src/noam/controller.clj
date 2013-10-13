@@ -14,16 +14,18 @@
    :headers {}
    :body    "wrong credentials!"})
 
-(defn index [{session :session :as req}]
+(defn index [{session :session :as req}
+             system]
   (if (logged-in? session)
-    (let [user (find-by-identifiers (MySQLUserStorage.) {:id (session :user-id)})]
-      (render (str "Welcome " (.username user) "! <a href=\"/logout\">Logout</a>") req))
+    (let [user (find-by-identifiers (:user-storage system) {:id (session :user-id)})]
+      (render (str "Welcome " (:username user) "! <a href=\"/logout\">Logout</a>") req))
     (redirect "/login.html")))
 
-(defn login [{session :session params :form-params :as req}]
+(defn login [{session :session params :form-params :as req}
+             system]
   (if-let [user (authenticate {:username (params "username")
                                :password (params "password")})] ;; TODO: sanitize user data?
-    (let [session (login-session session (.id user))]
+    (let [session (login-session session (:id user))]
       (-> (redirect "/")
           (assoc :session session)))
     (not-authenticated)))
@@ -40,8 +42,8 @@
 (defn all-routes
   [system]
   (routes
-    (GET "/" [] index)
-    (POST "/login" [] login)
+    (GET "/" [] #(index % system))
+    (POST "/login" [] #(login % system))
     (GET "/logout" [] logout)
     (GET "/myjson/:id" [id] #(myjson % id))
     (route/files "/") ; static file url prefix /, in `public` folder

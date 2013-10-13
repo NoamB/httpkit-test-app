@@ -35,7 +35,7 @@
 (defn wrap-outer-logging [handler]
   (fn [req]
     (info "=== REQUEST STARTED ===>" (req :uri))
-    (let [result (bench :debug (handler req))
+    (let [result (bench :info (handler req))
           resp (first result)
           request-time (second result)]
       (info "Sent Response: " resp)
@@ -52,11 +52,12 @@
 
 (defn- gen-handler
   [system]
-  (-> (site (-> system
-                all-routes
-                wrap-inner-logging
-                wrap-json-response))
-      (wrap-outer-logging)))
+  (-> system
+      all-routes ; main router
+      wrap-inner-logging ; inner logging
+      wrap-json-response ; turns clojure to json response
+      site ; session, flash and more...
+      wrap-outer-logging)) ; outer logging
 
 (defn -main
   "Starts the app"
