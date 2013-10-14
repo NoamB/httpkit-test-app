@@ -29,5 +29,11 @@
 
 (defn authenticate-from-storage
   "Looks in user storage for a user record with the supplied identifiers. If found returns the User, else nil."
-  [identifiers]
-  (.find-by-identifiers (->MySQLUserStorage) (select-keys identifiers [:username])))
+  [db identifiers]
+  (info identifiers)
+  (let [user (.find-by-identifiers db (select-keys identifiers [:username]))]
+    (info user)
+    (if (and user
+             (check-password (:password identifiers) (:encrypted-password user)))
+      user
+      nil)))

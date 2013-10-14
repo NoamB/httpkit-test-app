@@ -8,9 +8,9 @@
   [session]
   (not (nil? (session :user-id))))
 
-(defn authenticate ;; should loop over all authenticate options
-  [identifiers]
-  (authenticate-from-storage identifiers))
+(defn authenticate ; TODO: should loop over all authenticate options
+  [db identifiers]
+  (authenticate-from-storage db identifiers))
 
 (defn login-session
   "Sets user-id in session (effectively logs in the user)."

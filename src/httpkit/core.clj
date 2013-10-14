@@ -23,10 +23,11 @@
 
 (defn system []
   (let [user-storage (MySQLUserStorage.)]
-    {:user-storage user-storage}))
+    {:db {:user-storage user-storage}
+     :server {:port 8080}}))
 
 (defn start [system]
-  (server/start! (gen-handler system))
+  (server/start! (gen-handler system) (:server system))
   system)
 
 (defn stop [system]
@@ -68,5 +69,4 @@
   (info "args: " args)
   (set! *warn-on-reflection* true)
 
-  (let [handler (gen-handler (system))]
-    (server/start! handler)))
+  (start (system)))

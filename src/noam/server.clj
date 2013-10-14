@@ -2,7 +2,10 @@
 (ns noam.server
   (:require [org.httpkit.server :refer [run-server]]))
 
-(def ^:private stop-server-fn (atom nil))
+(def
+  ^{:doc "Holds the current stop-server-fn."
+    :private true}
+  stop-server-fn (atom nil))
 
 (defn stop!
   []
@@ -13,6 +16,6 @@
     (reset! stop-server-fn nil)))
 
 (defn start!
-  [handler]
-  (let [stop-fn (run-server handler {:port 8080})]
+  [handler subsystem]
+  (let [stop-fn (run-server handler subsystem)]
     (reset! stop-server-fn stop-fn)))
