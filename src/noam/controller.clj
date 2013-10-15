@@ -26,14 +26,12 @@
   (if-let [user (authenticate db {:username (params "username")
                                   :password (params "password")})] ;; TODO: sanitize user data?
     (let [session (login-session session (:id user))]
-      (-> (redirect "/")
-          (assoc :session session)))
+      (assoc (redirect "/") :session session))
     (not-authenticated)))
 
 (defn logout
   [req]
-  (-> (redirect "/")
-      (reset-session)))
+  (reset-session (redirect "/")))
 
 (defn myjson
   [req id]

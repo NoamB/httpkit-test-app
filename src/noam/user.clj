@@ -33,7 +33,9 @@
   (info identifiers)
   (let [user (.find-by-identifiers db (select-keys identifiers [:username]))]
     (info user)
-    (if (and user
-             (check-password (:password identifiers) (:encrypted-password user)))
-      user
-      nil)))
+    (when (and
+            user
+            (check-password
+              (:password identifiers)
+              (:encrypted-password user)))
+      user)))
