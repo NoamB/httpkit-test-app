@@ -14,8 +14,9 @@
             [noam.util.bench :refer [bench]]
             [noam.server :as server]
             [noam.controller :refer [all-routes]]
-            [noam.user :refer :all])
-  (:import noam.user.MySQLUserStorage)
+            [noamb.foe.user :refer :all]
+            [noam.util.db :as db])
+  (:import noam.util.db.MySQLUserStorage)
   (:gen-class))
 
 (declare wrap-outer-logging)

@@ -5,8 +5,7 @@
             [compojure.core :refer [routes GET POST]]
             [compojure.route :as route :refer [resources files not-found]]
             [noam.auth :refer [logged-in? authenticate login-session reset-session]]
-            [noam.user :refer :all])
-  (:import noam.user.MySQLUserStorage))
+            [noamb.foe.user :refer :all]))
 
 (defn not-authenticated
   []
@@ -17,14 +16,14 @@
 (defn index [{session :session :as req}
              subsystem]
   (if (logged-in? session)
-    (let [user (find-by-identifiers (:user-storage subsystem) {:id (session :user-id)})]
+    (let [user (find-user (:user-storage subsystem) {:id (session :user-id)})]
       (render (str "Welcome " (:username user) "! <a href=\"/logout\">Logout</a>") req))
     (redirect "/login.html")))
 
 (defn login [{session :session params :form-params :as req}
              {db :user-storage :as subsystem}]
   (if-let [user (authenticate db {:username (params "username")
-                                  :password (params "password")})] ;; TODO: sanitize user data?
+                                  :password (params "password")})] ; TODO: sanitize user data?
     (let [session (login-session session (:id user))]
       (assoc (redirect "/") :session session))
     (not-authenticated)))

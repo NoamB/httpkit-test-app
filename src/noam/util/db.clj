@@ -4,16 +4,18 @@
             [clojure.java.jdbc.sql :as sql]
             [clojure.java.jdbc.ddl :as ddl]
             [clojure.string :as s]
-            [noam.util.bench :refer [bench]])
+            [noam.util.bench :refer [bench]]
+            [noamb.foe.user :refer :all])
   (:import javax.sql.DataSource
-           com.mchange.v2.c3p0.ComboPooledDataSource))
+           com.mchange.v2.c3p0.ComboPooledDataSource
+           noamb.foe.user.User))
 
 (def db-spec
-  {:classname   "com.mysql.jdbc.Driver"
+  {:classname "com.mysql.jdbc.Driver"
    :subprotocol "mysql"
-   :subname     "//localhost:3306/test"
-   :user        "annonymous"
-   :password    ""})
+   :subname "//localhost:3306/test"
+   :user "annonymous"
+   :password ""})
 
 (defn connection-pool
   "Create a connection pool for the given database spec."
@@ -23,15 +25,15 @@
            idle-connection-test-period
            test-connection-on-checkin
            test-connection-on-checkout]
-    :or   {excess-timeout              (* 30 60)
-           idle-timeout                (* 3 60 60)
-           minimum-pool-size           3
-           maximum-pool-size           15
-           test-connection-query       nil
-           idle-connection-test-period 0
-           test-connection-on-checkin  false
-           test-connection-on-checkout false}
-    :as   spec}]
+    :or {excess-timeout (* 30 60)
+         idle-timeout (* 3 60 60)
+         minimum-pool-size 3
+         maximum-pool-size 15
+         test-connection-query nil
+         idle-connection-test-period 0
+         test-connection-on-checkin false
+         test-connection-on-checkout false}
+    :as spec}]
   {:datasource (doto (ComboPooledDataSource.)
                  (.setDriverClass classname)
                  (.setJdbcUrl (str "jdbc:" subprotocol ":" subname))
@@ -92,3 +94,18 @@
         query (str query-prefix (first ps) query-suffix)]
     (flatten
       [query (second ps) id])))
+
+(deftype MySQLUserStorage
+         []
+  IUserStorage
+  (update!
+      [this attrs-map]
+    (exec (build-query-from-attrs "UPDATE Users SET " attrs-map " WHERE id = ?")))
+  (find-user
+      ^User
+      [this identifiers]
+    (let [ps (map-to-prepared-statement identifiers)
+          query (str "SELECT * FROM Users WHERE " (first ps))
+          params (second ps)
+          query-and-params (cons query params)]
+      (map->User (first (select query-and-params))))))
