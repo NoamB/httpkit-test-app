@@ -1,4 +1,4 @@
-(ns noam.auth
+(ns noamb.foe.auth
   {:author "Noam Ben Ari"}
   (:require [noamb.foe.user :refer [authenticate-from-storage]]))
 

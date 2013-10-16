@@ -5,7 +5,7 @@
             [clojure.java.jdbc.ddl :as ddl]
             [clojure.string :as s]
             [noam.util.bench :refer [bench]]
-            [noamb.foe.user :refer :all])
+            [noamb.foe.user :refer [IUserStorage] :as user])
   (:import javax.sql.DataSource
            com.mchange.v2.c3p0.ComboPooledDataSource
            noamb.foe.user.User))
@@ -59,7 +59,7 @@
     :Users
     [:id :integer "PRIMARY KEY" "AUTO_INCREMENT"]
     [:username "varchar(255)"]
-    [:encrypt_password "varchar(255)"]))
+    [:encrypted-password "varchar(255)"]))
 
 (defn exec
   [sql-vec]
@@ -102,10 +102,10 @@
       [this attrs-map]
     (exec (build-query-from-attrs "UPDATE Users SET " attrs-map " WHERE id = ?")))
   (find-user
-      ^User
+      ^user/User
       [this identifiers]
     (let [ps (map-to-prepared-statement identifiers)
           query (str "SELECT * FROM Users WHERE " (first ps))
           params (second ps)
           query-and-params (cons query params)]
-      (map->User (first (select query-and-params))))))
+      (user/map->User (first (select query-and-params))))))

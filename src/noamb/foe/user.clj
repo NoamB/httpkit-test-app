@@ -5,9 +5,10 @@
 (defrecord User [id username encrypted-password])
 
 (defprotocol IUserStorage
-  "IUserStorage docstring"
-  (update! [this attrs-map] "docstring")
-  (find-user [this identifiers] "docstring"))
+  "A generic interface for your user storage, be it in RDBMS, NoSQL or another storage engine.
+  Defines functions for retrieving and updating a user."
+  (update! [this attrs-map] "updates a user record using a map of attributes. Should return an updated user.")
+  (find-user [this identifiers] "returns a user record using an identifiers map (for example {:username 'sam'})."))
 
 (defn- salt [] (gensalt 10))
 

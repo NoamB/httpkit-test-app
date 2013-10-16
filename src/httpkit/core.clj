@@ -23,7 +23,7 @@
 (declare gen-handler)
 
 (defn system []
-  (let [user-storage (MySQLUserStorage.)]
+  (let [user-storage (db/MySQLUserStorage.)]
     {:db {:user-storage user-storage}
      :server {:port 8080}}))
 

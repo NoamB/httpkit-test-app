@@ -4,7 +4,7 @@
             [compojure.response :refer [render]]
             [compojure.core :refer [routes GET POST]]
             [compojure.route :as route :refer [resources files not-found]]
-            [noam.auth :refer [logged-in? authenticate login-session reset-session]]
+            [noamb.foe.auth :refer [logged-in? authenticate login-session reset-session]]
             [noamb.foe.user :refer :all]))
 
 (defn not-authenticated
