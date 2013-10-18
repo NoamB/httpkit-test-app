@@ -5,7 +5,7 @@
             [compojure.core :refer [routes GET POST]]
             [compojure.route :as route :refer [resources files not-found]]
             [noamb.foe.auth :refer [logged-in? authenticate login-session reset-session]]
-            [noamb.foe.user :refer :all]))
+            [noamb.foe.user :refer [find-user]]))
 
 (defn not-authenticated
   []
@@ -39,8 +39,8 @@
 (defn all-routes
   [system]
   (routes
-    (GET "/" [] #(index % (:db system)))
-    (POST "/login" [] #(login % (:db system)))
+    (GET "/" [] #(index % (:foe-config system)))
+    (POST "/login" [] #(login % (:foe-config system)))
     (GET "/logout" [] logout)
     (GET "/myjson/:id" [id] #(myjson % id))
     (route/files "/") ; static file url prefix /, in `public` folder

@@ -2,8 +2,6 @@
   (:require [clj-bcrypt-wrapper.core :refer [encrypt gensalt check-password]]
             [clojure.tools.logging :refer [info error]]))
 
-(defrecord User [id username encrypted-password])
-
 (defprotocol IUserStorage
   "A generic interface for your user storage, be it in RDBMS, NoSQL or another storage engine.
   Defines functions for retrieving and updating a user."

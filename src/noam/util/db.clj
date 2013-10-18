@@ -5,10 +5,9 @@
             [clojure.java.jdbc.ddl :as ddl]
             [clojure.string :as s]
             [noam.util.bench :refer [bench]]
-            [noamb.foe.user :refer [IUserStorage] :as user])
+            [noamb.foe.user :refer [IUserStorage]])
   (:import javax.sql.DataSource
-           com.mchange.v2.c3p0.ComboPooledDataSource
-           noamb.foe.user.User))
+           com.mchange.v2.c3p0.ComboPooledDataSource))
 
 (def db-spec
   {:classname "com.mysql.jdbc.Driver"
@@ -95,6 +94,8 @@
     (flatten
       [query (second ps) id])))
 
+(defrecord User [id username encrypted-password])
+
 (deftype MySQLUserStorage
          []
   IUserStorage
@@ -102,10 +103,10 @@
       [this attrs-map]
     (exec (build-query-from-attrs "UPDATE Users SET " attrs-map " WHERE id = ?")))
   (find-user
-      ^user/User
+      ^User
       [this identifiers]
     (let [ps (map-to-prepared-statement identifiers)
           query (str "SELECT * FROM Users WHERE " (first ps))
           params (second ps)
           query-and-params (cons query params)]
-      (user/map->User (first (select query-and-params))))))
+      (map->User (first (select query-and-params))))))
