@@ -3,7 +3,11 @@
     :doc "Functions for updating the session with the authentication state."}
   (:require [noamb.foe.user :refer [authenticate-from-storage]]))
 
-(def ^{:dynamic true} *authentication-methods* [authenticate-from-storage])
+(defn authenticate-from-cookie
+  [db identifiers]
+  nil)
+
+(def ^{:dynamic true} *authentication-methods* [authenticate-from-cookie authenticate-from-storage])
 
 (defn logged-in?
   "Takes a session map and inspects it for the required keys to be logged in.
@@ -16,8 +20,8 @@
   [db identifiers]
   (loop [methods *authentication-methods*]
     (when (seq methods)
-      (let [user ((first methods) db identifiers)]
-        user))))
+      (or ((first methods) db identifiers)
+          (recur (rest methods))))))
 
 (defn login
   "Sets user-id in session (effectively logs in the user)."
