@@ -25,10 +25,9 @@
 (declare gen-handler)
 
 (defn system []
-  (let [user-storage (db/MySQLUserStorage.)]
-    {:foe-config {:user-storage user-storage
-                  :modules [:user :remember-me]}
-     :server {:port 8080}}))
+  {:foe-config {:user-storage (db/MySQLUserStorage.)
+                :modules [:user :remember-me]}
+   :server {:port 8080}})
 
 (defn start [system]
   (foe/start! (:foe-config system))
