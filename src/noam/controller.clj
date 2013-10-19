@@ -4,7 +4,7 @@
             [compojure.response :refer [render]]
             [compojure.core :refer [routes GET POST]]
             [compojure.route :as route :refer [resources files not-found]]
-            [noamb.foe.auth :refer [logged-in? authenticate login logout]]
+            [noamb.foe.auth :refer [logged-in? authenticate login logout require-login]]
             [noamb.foe.user :refer [find-user]]))
 
 (defn not-authenticated
@@ -15,17 +15,16 @@
 
 (defn index [{session :session :as req}
              {user-storage :user-storage :as subsystem}]
-  (if (logged-in? session)
-    (let [identifiers {:id (session :user-id)}
-          user (find-user user-storage identifiers)]
-      (render (str "Welcome " (:username user) "! <a href=\"/logout\">Logout</a>") req))
-    (redirect "/login.html")))
+  (let [identifiers {:id (session :user-id)}
+        user (find-user user-storage identifiers)]
+    (render (str "Welcome " (:username user) "! <a href=\"/logout\">Logout</a>") req)))
 
 (defn create-session [{session :session
                        params :form-params :as req}
                       {db :user-storage :as subsystem}]
   (if-let [user (authenticate db {:username (params "username")
-                                  :password (params "password")})] ; TODO: sanitize user data?
+                                  :password (params "password")
+                                  :remember-me (params "remember-me")})] ; TODO: sanitize user data?
     (let [session (login session (:id user))]
       (assoc (redirect "/") :session session))
     (not-authenticated)))
@@ -41,7 +40,7 @@
 (defn all-routes
   [system]
   (routes
-    (GET "/" [] #(index % (:foe-config system)))
+    (GET "/" [] #(require-login index % (:foe-config system)))
     (POST "/login" [] #(create-session % (:foe-config system)))
     (GET "/logout" [] destroy-session)
     (GET "/myjson/:id" [id] #(myjson % id))

@@ -14,6 +14,7 @@
             [noam.util.bench :refer [bench]]
             [noam.server :as server]
             [noam.controller :refer [all-routes]]
+            [noamb.foe :as foe]
             [noamb.foe.user :refer [IUserStorage]]
             [noam.util.db :as db])
   (:import noam.util.db.MySQLUserStorage
@@ -25,10 +26,12 @@
 
 (defn system []
   (let [user-storage (db/MySQLUserStorage.)]
-    {:foe-config {:user-storage user-storage}
+    {:foe-config {:user-storage user-storage
+                  :modules [:remember-me]}
      :server {:port 8080}}))
 
 (defn start [system]
+  (foe/start! (:foe-config system))
   (server/start! (gen-handler system) (:server system))
   system)
 
