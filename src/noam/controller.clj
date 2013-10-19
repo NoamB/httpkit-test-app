@@ -7,11 +7,15 @@
             [noamb.foe.auth :refer [logged-in? authenticate login logout require-login]]
             [noamb.foe.user :refer [find-user]]))
 
-(defn not-authenticated
+(defn wrong-credentials
   []
   {:status 403
    :headers {}
    :body "wrong credentials!"})
+
+(defn not-authenticated
+  [req & args]
+  (assoc (redirect "/login.html") :flash "Please login."))
 
 (defn index [{session :session :as req}
              {user-storage :user-storage :as subsystem}]
@@ -27,7 +31,7 @@
                                   :remember-me (params "remember-me")})] ; TODO: sanitize user data?
     (let [session (login session (:id user))]
       (assoc (redirect "/") :session session))
-    (not-authenticated)))
+    (wrong-credentials)))
 
 (defn destroy-session
   [req]
@@ -40,7 +44,7 @@
 (defn all-routes
   [system]
   (routes
-    (GET "/" [] #(require-login index % (:foe-config system)))
+    (GET "/" [] #(require-login index not-authenticated % (:foe-config system)))
     (POST "/login" [] #(create-session % (:foe-config system)))
     (GET "/logout" [] destroy-session)
     (GET "/myjson/:id" [id] #(myjson % id))

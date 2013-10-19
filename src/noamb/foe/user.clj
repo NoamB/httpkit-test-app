@@ -1,6 +1,9 @@
 (ns noamb.foe.user
+  ^{:author "Noam Ben Ari"
+    :doc "This module handles authenticating using user-supplied credentials."}
   (:require [clj-bcrypt-wrapper.core :refer [encrypt gensalt check-password]]
-            [clojure.tools.logging :refer [info error]]))
+            [clojure.tools.logging :refer [info error]]
+            [noamb.foe :as foe]))
 
 (defprotocol IUserStorage
   "A generic interface for your user storage, be it in RDBMS, NoSQL or another storage engine.
@@ -10,7 +13,7 @@
 
 (defn- salt [] (gensalt 10))
 
-(defn authenticate-from-storage
+(defn authenticate-from-user
   "Looks in user storage for a user record with the supplied identifiers. If found returns the User, else nil."
   [db identifiers]
   (info identifiers)
@@ -22,3 +25,8 @@
               (:password identifiers)
               (:encrypted-password user)))
       user)))
+
+(defn start!
+  []
+  (prn "user module activated")
+  (swap! foe/authentication-methods #(into [authenticate-from-user] %)))

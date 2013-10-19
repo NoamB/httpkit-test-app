@@ -1,5 +1,7 @@
 (ns noamb.foe.remember-me
-  (:require [noamb.foe.auth :as auth]))
+  ^{:author "Noam Ben Ari"
+    :doc "This module handles authentication using cookies."}
+  (:require [noamb.foe :as foe]))
 
 (defn authenticate-from-cookie
   [db identifiers]
@@ -10,7 +12,7 @@
 (defn start!
   []
   (prn "remember-me module activated")
-  (swap! auth/*authentication-methods* #(into [authenticate-from-cookie] %)))
+  (swap! foe/authentication-methods #(into [authenticate-from-cookie] %)))
 
 (defn remember-me
   "Sets a remember-me cookie."

@@ -27,7 +27,7 @@
 (defn system []
   (let [user-storage (db/MySQLUserStorage.)]
     {:foe-config {:user-storage user-storage
-                  :modules [:remember-me]}
+                  :modules [:user :remember-me]}
      :server {:port 8080}}))
 
 (defn start [system]
@@ -55,6 +55,7 @@
   (fn [req]
     (do
       (info "Params:" (req :params))
+      (info "Flash:" (req :flash))
       (handler req))))
 
 (defn- gen-handler
