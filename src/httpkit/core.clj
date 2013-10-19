@@ -36,7 +36,8 @@
   system)
 
 (defn stop [system]
-  (server/stop!))
+  (server/stop!)
+  (foe/stop!))
 
 (defn wrap-outer-logging [handler]
   (fn [req]
