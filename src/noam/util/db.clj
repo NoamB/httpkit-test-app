@@ -5,7 +5,7 @@
             [clojure.java.jdbc.ddl :as ddl]
             [clojure.string :as s]
             [noam.util.bench :refer [bench]]
-            [noamb.foe.user :refer [IUserStorage]])
+            [noamb.foe.user :refer [IUserStorage encrypt-password]])
   (:import javax.sql.DataSource
            com.mchange.v2.c3p0.ComboPooledDataSource))
 
@@ -99,6 +99,11 @@
 (deftype MySQLUserStorage
          []
   IUserStorage
+  (create!
+      [this attrs-map]
+    (exec ["INSERT INTO Users VALUES (?, ? ,?)", (attrs-map :id)
+           (attrs-map :username)
+           (encrypt-password (attrs-map :password))]))
   (update!
       [this attrs-map]
     (exec (build-query-from-attrs "UPDATE Users SET " attrs-map " WHERE id = ?")))

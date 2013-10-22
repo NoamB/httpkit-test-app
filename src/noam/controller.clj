@@ -5,7 +5,7 @@
             [compojure.core :refer [routes GET POST]]
             [compojure.route :as route :refer [resources files not-found]]
             [noamb.foe.auth :refer [logged-in? authenticate login logout require-login]]
-            [noamb.foe.user :refer [find-user]]))
+            [noamb.foe.user :refer [find-user create!]]))
 
 (defn wrong-credentials
   []
@@ -33,6 +33,15 @@
       (assoc (redirect "/") :session session))
     (wrong-credentials)))
 
+(defn create-user [{session :session
+                    params :form-params :as req}
+                   {db :user-storage :as subsystem}]
+  (if-let [user (create! db {:username (params "username")
+                             :password (params "password")})]
+    (let [session (login session (:id user))]
+      (assoc (redirect "/") :session session))
+    (wrong-credentials)))
+
 (defn destroy-session
   [req]
   (logout (redirect "/")))
@@ -46,6 +55,7 @@
   (routes
     (GET "/" [] #(require-login index not-authenticated % (:foe-config system)))
     (POST "/login" [] #(create-session % (:foe-config system)))
+    (POST "/signup" [] #(create-user % (:foe-config system)))
     (GET "/logout" [] destroy-session)
     (GET "/myjson/:id" [id] #(myjson % id))
     (route/files "/") ; static file url prefix /, in `public` folder

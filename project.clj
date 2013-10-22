@@ -21,5 +21,6 @@
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[org.clojure/tools.namespace "0.2.4"]
                                   [org.clojure/java.classpath "0.2.0"]]
-                   :plugins [[lein-kibit "0.0.8"]]}}
+                   :plugins [;[lein-ring "0.8.7"]
+                              [lein-kibit "0.0.8"]]}}
   :main httpkit.core)
