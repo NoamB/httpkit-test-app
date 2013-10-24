@@ -1,14 +1,24 @@
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Login</title>
+    <title>Log in</title>
 </head>
 <body>
-<form method="POST" id="login" action="/login">
-    <input type="text" name="username" value=""/>
-    <input type="password" name="password" value=""/>
-    <input type="checkbox" name="remember-me"/>
-    <input type="submit" name="submit" value="submit"/>
-</form>
-<p><a href="/signup.html">Sign Up</a></p>
+<h3>Log in</h3>
+
+<div>
+    <form method="POST" id="login" action="/login">
+        <div><label for="username-field">Username</label><input id="username-field" type="text" name="username"
+                                                                value=""/></div>
+        <div><label for="password-field">Password</label><input id="password-field" type="password" name="password"
+                                                                value=""/></div>
+        <div><label for="remember-me-checkbox">Remember me</label><input id="remember-me-checkbox" type="checkbox"
+                                                                         name="remember-me"/></div>
+        <div><input type="submit" name="submit" value="Send"/></div>
+    </form>
+</div>
+
+<div><a href="/login.html">Log in</a> | <a href="/signup.html">Sign up</a> | <a href="/forgot.html">Forgot password?</a>
+</div>
 </body>
 </html>

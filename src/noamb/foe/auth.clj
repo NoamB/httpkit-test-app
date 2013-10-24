@@ -28,10 +28,15 @@
   [resp]
   (assoc resp :session nil))
 
-(defn require-login
+(defn require-login*
   "Used to wrap a route handler, checks if 'logged-in?'. If true, allows the handler to run.
   If false, rejects the user."
-  [success-method fail-method {session :session :as req} & args]
+  [success-method fail-method {session :session :as req}]
   (if (logged-in? session)
-    (apply success-method req args)
-    (apply fail-method req args)))
+    (apply success-method [req])
+    (apply fail-method [req])))
+
+(defmacro require-login
+  [fail-method form]
+  (let [[method path args & body] form]
+    `(~method ~path ~args #(require-login* ~@body ~fail-method %))))

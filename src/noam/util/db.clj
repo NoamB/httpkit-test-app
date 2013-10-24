@@ -114,4 +114,5 @@
           query (str "SELECT * FROM Users WHERE " (first ps))
           params (second ps)
           query-and-params (cons query params)]
-      (map->User (first (select query-and-params))))))
+      (when-let [row (first (select query-and-params))]
+        (map->User row)))))

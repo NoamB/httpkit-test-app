@@ -20,9 +20,8 @@
 (defn authenticate-from-user
   "Looks in user storage for a user record with the supplied identifiers. If found returns the User, else nil."
   [db identifiers]
-  (info identifiers)
+  (info (str identifiers))
   (let [user (find-user db (select-keys identifiers [:username]))]
-    (info user)
     (when (and
             user
             (bcrypt/check-password
@@ -32,5 +31,4 @@
 
 (defn start!
   []
-  (prn "user module activated")
   (swap! foe/authentication-methods #(into [authenticate-from-user] %)))

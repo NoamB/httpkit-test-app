@@ -53,8 +53,8 @@
 (defn wrap-inner-logging [handler]
   (fn [req]
     (do
-      (info "Params:" (req :params))
-      (info "Flash:" (req :flash))
+      (info "Params:" (str (req :params)))
+      (info "Flash:" (str (req :flash)))
       (handler req))))
 
 (defn- gen-handler

@@ -1,14 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title></title>
+    <title>Sign up</title>
 </head>
 <body>
-<form method="POST" id="signup" action="/signup">
-    <input type="text" name="username" value=""/>
-    <input type="password" name="password" value=""/>
-    <input type="password" name="password_confirm" value=""/>
-    <input type="submit" name="submit" value="submit"/>
-</form>
+<h3>Sign up</h3>
+
+<div>
+    <form method="POST" id="signup" action="/signup">
+        <div><label for="username-field">Username</label><input id="username-field" type="text" name="username"
+                                                                value=""/></div>
+        <div><label for="password-field">Password</label><input id="password-field" type="password" name="password"
+                                                                value=""/></div>
+        <div><label for="password-confirm-field"> (Again) </label><input id="password-confirm-field" type="password"
+                                                                         name="password-confirm" value=""/></div>
+        <div><input type="submit" name="submit" value="Send"/></div>
+    </form>
+</div>
+
+<div><a href="/login.html">Log in</a> | <a href="/signup.html">Sign up</a> | <a href="/forgot.html">Forgot password?</a>
+</div>
 </body>
 </html>

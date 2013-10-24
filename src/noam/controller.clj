@@ -53,10 +53,11 @@
 (defn all-routes
   [system]
   (routes
-    (GET "/" [] #(require-login index not-authenticated % (:foe-config system)))
+    (require-login not-authenticated
+                   (GET "/" [] #(index % (:foe-config system))))
+    (GET "/logout" [] destroy-session)
     (POST "/login" [] #(create-session % (:foe-config system)))
     (POST "/signup" [] #(create-user % (:foe-config system)))
-    (GET "/logout" [] destroy-session)
     (GET "/myjson/:id" [id] #(myjson % id))
     (route/files "/") ; static file url prefix /, in `public` folder
     (route/not-found "<p>Page not found.</p>"))) ; all other, return 404
