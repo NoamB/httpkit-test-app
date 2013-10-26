@@ -54,8 +54,9 @@
   [system]
   (routes
     (require-login not-authenticated
-                   (GET "/" [] #(index % (:foe-config system))))
-    (GET "/logout" [] destroy-session)
+                   (GET "/" [] #(index % (:foe-config system)))
+                   (GET "/logout" [] destroy-session))
+
     (POST "/login" [] #(create-session % (:foe-config system)))
     (POST "/signup" [] #(create-user % (:foe-config system)))
     (GET "/myjson/:id" [id] #(myjson % id))

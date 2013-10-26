@@ -2,7 +2,9 @@
   ^{:author "Noam Ben Ari"
     :doc "Functions for updating the session with the authentication state."}
   (:require [ring.util.response :refer [redirect]]
-            [noamb.foe :as foe]))
+            [noamb.foe :as foe]
+            [compojure.core :refer [routes]]
+            [clojure.tools.logging :refer [debug info error]]))
 
 (defn logged-in?
   "Takes a session map and inspects it for the required keys to be logged in.
@@ -36,7 +38,13 @@
     (apply success-method [req])
     (apply fail-method [req])))
 
+(defn- require-login-single-form
+  [fail-method [method path args & body :as form]]
+  `(~method ~path ~args #(require-login* ~@body ~fail-method %)))
+
 (defmacro require-login
-  [fail-method form]
-  (let [[method path args & body] form]
-    `(~method ~path ~args #(require-login* ~@body ~fail-method %))))
+  [fail-method & forms]
+  (let [processed-forms (vec (map #(require-login-single-form fail-method %) (vec forms)))]
+    `(apply routes ~processed-forms)))
+
+
