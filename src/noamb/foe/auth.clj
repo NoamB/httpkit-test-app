@@ -35,16 +35,26 @@
   If false, rejects the user."
   [success-method fail-method {session :session :as req}]
   (if (logged-in? session)
-    (apply success-method [req])
-    (apply fail-method [req])))
+    (success-method req)
+    (let [session (assoc session :destination-uri (:uri req))
+          resp (fail-method req)]
+      (assoc resp :session session))))
 
 (defn- require-login-single-form
   [fail-method [method path args & body :as form]]
   `(~method ~path ~args #(require-login* ~@body ~fail-method %)))
 
 (defmacro require-login
+  "A wrapper for compojure routes, allowing filtering of routes by login status."
   [fail-method & forms]
   (let [processed-forms (vec (map #(require-login-single-form fail-method %) (vec forms)))]
     `(apply routes ~processed-forms)))
+
+(defn redirect-to-destination-or [path session]
+  (let [destination (:destination-uri session)]
+    (if destination
+      (let [session (dissoc session :destination-uri)]
+        (assoc (redirect destination) :session session))
+      (assoc (redirect path) :session session))))
 
 

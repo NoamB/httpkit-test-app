@@ -26,7 +26,8 @@
 
 (defn system []
   {:foe-config {:user-storage (db/MySQLUserStorage.)
-                :modules [:user :remember-me]}
+                :modules [:user :remember-me]
+                :after-login-redirect-to-original-destination true}
    :server {:port 8080}})
 
 (defn start [system]
