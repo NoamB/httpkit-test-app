@@ -51,10 +51,9 @@
     `(apply routes ~processed-forms)))
 
 (defn redirect-to-destination-or [path session]
-  (let [destination (:destination-uri session)]
-    (if destination
-      (let [session (dissoc session :destination-uri)]
-        (assoc (redirect destination) :session session))
-      (assoc (redirect path) :session session))))
+  (if-let [destination (:destination-uri session)]
+    (let [session (dissoc session :destination-uri)]
+      (assoc (redirect destination) :session session))
+    (assoc (redirect path) :session session)))
 
 

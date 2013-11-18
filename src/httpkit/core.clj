@@ -17,8 +17,8 @@
             [noamb.foe :as foe]
             [noamb.foe.user :refer [IUserStorage]]
             [noam.util.db :as db])
-  (:import noam.util.db.MySQLUserStorage
-           noam.util.db.User)
+  (:import noam.util.db.User
+           noam.util.db.MySQLUserStorage)
   (:gen-class))
 
 (declare wrap-outer-logging)
