@@ -6,7 +6,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [ring/ring-core "1.2.0"]
                  [ring/ring-json "0.2.0"]
-                 [http-kit "2.1.10"]
+                 [http-kit "2.1.13"]
                  [compojure "1.1.5"]
                  ; logs
                  [org.slf4j/slf4j-api "1.7.5"]

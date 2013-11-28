@@ -4,6 +4,8 @@
             [compojure.response :refer [render]]
             [compojure.core :refer [routes GET POST]]
             [compojure.route :as route :refer [resources files not-found]]
+            [org.httpkit.server :as h]
+            [cheshire.core :as json]
             [noamb.foe.auth :refer [logged-in? authenticate login logout require-login redirect-to-destination-or]]
             [noamb.foe.user :refer [find-user create!]]))
 
@@ -56,6 +58,24 @@
   [req id]
   (response {:id id}))
 
+(defn ws-handler [req]
+  (h/with-channel req channel ; get the channel
+                              ;; communicate with client using method defined above
+                  (h/on-close channel (fn [status]
+                                        (info "channel closed")))
+                  (if (h/websocket? channel)
+                    (info "WebSocket channel")
+                    (info "HTTP channel"))
+                  (h/on-receive channel (fn [data] ; data received from client
+                                          ;; An optional param can pass to send!: close-after-send?
+                                          ;; When unspecified, `close-after-send?` defaults to true for HTTP channels
+                                          ;; and false for WebSocket.  (send! channel data close-after-send?)
+                                          (info "ws:received:" (str data))
+                                          ;; deserialize string into data
+                                          (let [real-data (json/parse-string data true)]
+                                            nil)
+                                          (h/send! channel data))))) ; data is sent directly to the client
+
 (defn all-routes
   [system]
   (routes
@@ -67,5 +87,6 @@
     (POST "/login" [] #(create-session % (:foe-config system)))
     (POST "/signup" [] #(create-user % (:foe-config system)))
     (POST "/forgot" [] #(forgot-password % (:foe-config system)))
+    (GET "/wss" [] ws-handler)
     (route/files "/") ; static file url prefix /, in `public` folder
     (route/not-found "<p>Page not found.</p>"))) ; all other, return 404

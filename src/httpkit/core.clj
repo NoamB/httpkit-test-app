@@ -24,6 +24,7 @@
 (declare wrap-outer-logging)
 (declare gen-handler)
 
+; system constructor
 (defn system []
   {:foe-config {:user-storage (db/MySQLUserStorage.)
                 :modules [:user :remember-me]
