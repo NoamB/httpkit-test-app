@@ -6,8 +6,9 @@
 (ns httpkit.core
   {:author "Noam Ben Ari"}
   (:require [clojure.tools.logging :refer [debug info error]]
-
-            [ring.middleware.session :as session]
+            ;[ring.middleware.session :as session]
+            ;[ring.middleware.cookies :as cookies]
+            ;[ring.middleware.params :as params]
             [ring.middleware.json :refer [wrap-json-response]]
 
             [compojure.handler :refer [site]] ; form, query params decode; cookie; session, etc
@@ -29,7 +30,7 @@
   {:foe-config {:user-storage (db/MySQLUserStorage.)
                 :modules [:user :remember-me]
                 :after-login-redirect-to-original-destination true}
-   :server {:port 8080}})
+   :server {:port 8090}})
 
 (defn start [system]
   (foe/start! (:foe-config system))
@@ -65,6 +66,9 @@
       all-routes ; main router
       wrap-inner-logging ; inner logging
       wrap-json-response ; turns clojure to json response
+                 ;session/wrap-session
+                 ;params/wrap-params
+                 ;cookies/wrap-cookies
       site ; session, flash and more...
       wrap-outer-logging)) ; outer logging
 

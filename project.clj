@@ -20,7 +20,9 @@
                  [mysql/mysql-connector-java "5.1.22"]]
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[org.clojure/tools.namespace "0.2.4"]
-                                  [org.clojure/java.classpath "0.2.0"]]
+                                  [org.clojure/java.classpath "0.2.0"]
+                                  [stylefruits/gniazdo "0.0.0"]]
                    :plugins [;[lein-ring "0.8.7"]
-                              [lein-kibit "0.0.8"]]}}
+                              [lein-kibit "0.0.8"]
+                              [lein-exec "0.3.1"]]}}
   :main httpkit.core)

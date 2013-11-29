@@ -74,6 +74,7 @@
                                           ;; deserialize string into data
                                           (let [real-data (json/parse-string data true)]
                                             nil)
+                                          (info "ws:parsed")
                                           (h/send! channel data))))) ; data is sent directly to the client
 
 (defn all-routes
